@@ -7,6 +7,7 @@
 
 /*--------- Includes ---------*/
 #include "HX711.h" // Biblioteca  HX711
+#include <Arduino.h>
 
 /*---------- Macros ----------*/
 
@@ -18,9 +19,9 @@ Serial.print(x)
 
 #define VAR_DUMPN(x) \
 Serial.print(" " #x ": ");\
+Serial.println(x)
 
 /*----------- Constants --------------*/
-Serial.println(x)
 
 #define DOUT  A0                      // HX711 DATA OUT = pino A0 do Arduino
 #define CLK  A1                       // HX711 SCK IN = pino A1 do Arduino
@@ -119,7 +120,7 @@ void loop()
     }
     else
     {
-      Serial.println("sensor error")
+      Serial.println("sensor error");
     }
   }
     //float avg = data_sum/(DEC_SHIFT);

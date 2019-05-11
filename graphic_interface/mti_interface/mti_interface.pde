@@ -53,30 +53,24 @@ void setup()
 {
   size(800, 600);
     font  = createFont("Arial", 16, true);
-   //port =  new Serial(this, "/dev/ttyACM0", 9600);
+   port =  new Serial(this, "/dev/ttyACM0", 115200);
  
-  draw_indicator(0);
-  draw_numbers(0);
+  draw_indicator(mass);
+  draw_numbers(mass);
   delay(500);
 }
 
 /*---------- DRAW */
 void draw()
 {
-  float ang = PI* mass/max_mass;
-  mass+=1;
-  draw_indicator(ang);
-  draw_numbers(mass);
-
-  /*
+  //float ang = ;
+  //mass+=1;
+  port.write('r');
   if(port.available() > 0)
    {
-   background(255);
-   textAlign(CENTER);
-   textFont(txt,18);
-   fill(0);
-   text(value, 320,320);
-   value = port.readString();
-   println(value);
-   }*/
+    value = port.readString();
+    mass = float(value);
+    draw_indicator(PI* mass/max_mass);
+    draw_numbers(mass);
+   }
 }
