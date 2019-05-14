@@ -93,10 +93,10 @@ void loop()
         case 't':
           tare();   // zera a Balança
           break;
-        case 'r':
+        /*case 'r':
           Serial.println(avgi/DEC_SHIFT);
           //Serial.print(" g");
-          break;
+          break;*/
         default:
           Serial.println("Comando inválido");
       }
@@ -131,6 +131,7 @@ void loop()
       #endif
       digitalWrite(13, 1);
     }
+    Serial.println(avgi/DEC_SHIFT);
   }
     //float avg = data_sum/(DEC_SHIFT);
     //avg = data_sum/DATA_PT_SIZE;
