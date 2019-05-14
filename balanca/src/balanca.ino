@@ -11,7 +11,7 @@
 
 /*---------- Macros ----------*/
 
-#define DEBUG 1
+#define DEBUG 0
 
 #define VAR_DUMP(x) \
 Serial.print(" " #x ": ");\
@@ -29,35 +29,40 @@ Serial.println(x)
 #define CONV_FACTOR 1000.0
 #define DEC_SHIFT 100.0
 
-
-
 #define READING_MAX 100000
 
 /*--------- Variables ----------*/
 
 HX711 scale;
-float calibration_factor = 456230.0;//2*228110.00;   // fator de calibração para teste inicial
+float calibration_factor = 453841.16;//2*228110.00;   // fator de calibração para teste inicial
 
 String command, arg;
 
-uint32_t data_pts[DATA_PT_SIZE];
-uint32_t data_sum = 0;
-uint32_t pos = 0;
+int32_t data_pts[DATA_PT_SIZE];
+int32_t data_sum = 0;
+int32_t pos = 0;
+int32_t avgi=0, reading=0;
 
 /*--------- Functions --------*/
 inline void tare()
 {
-  scale.tare();   // zera a Balança
-  Serial.println("Balança tarada");
+  scale.tare(10);   // zera a Balança
+  //Serial.println("Balança tarada");
+  for(int i=0;i<DATA_PT_SIZE;i++)
+    {
+      data_pts[i] = 0;
+    }
+    data_sum=0;
 }
 
 /*---------- Setup -----------*/
 void setup()
 {
+  pinMode(13, OUTPUT);
   Serial.begin(115200);
-  scale.begin(DOUT, CLK);
+  scale.begin(DOUT, CLK,128);
 
-  Serial.println("\n\nParvus Metiri \n remova o qualquer massa da balanca\n envie t para tarar e +/- <valor> para ajustar constante");
+  //Serial.println("\n\nParvus Metiri \n remova o qualquer massa da balanca\n envie t para tarar e +/- <valor> para ajustar constante");
 
   scale.set_scale(calibration_factor);   // configura a escala da Balança
   for(int i=0;i<DATA_PT_SIZE;i++)
@@ -88,17 +93,18 @@ void loop()
         case 't':
           tare();   // zera a Balança
           break;
-        /*case 'r':
-           a=(-balanca.get_units())*1000;
-          Serial.println(a, 1);
-          break;*/
+        case 'r':
+          Serial.println(avgi/DEC_SHIFT);
+          //Serial.print(" g");
+          break;
         default:
           Serial.println("Comando inválido");
       }
       scale.set_scale(calibration_factor);
     }
     /*this is a fixed point moving average implementation*/
-    uint32_t avgi, reading = floor(-scale.get_units()*CONV_FACTOR*DEC_SHIFT); /*CONV_FACTOR converts the input to grams and dec shift "shifts" the number to the left 2 places*/
+    reading = floor(-scale.get_units()*CONV_FACTOR*DEC_SHIFT); /*CONV_FACTOR converts the input to grams and dec shift "shifts" the number to the left 2 places*/
+
     if(reading < (READING_MAX*DEC_SHIFT)) /*remove aberration values */
     {
       data_sum -= data_pts[pos];
@@ -106,21 +112,24 @@ void loop()
       data_pts[pos]= reading;
       pos = pos+1 >= DATA_PT_SIZE ? 0 : pos + 1;
       avgi = data_sum/DATA_PT_SIZE;
-      Serial.print("weight: ");
-      Serial.print(avgi/DEC_SHIFT);
       //Serial.print("      Fator de Calibração: ");   // imprime no monitor serial
-  #ifdef DEBUG
+      //S
+      #if DEBUG == 1
+      VAR_DUMP(avgi/DEC_SHIFT);
       VAR_DUMP(calibration_factor);
       VAR_DUMP(data_sum);
       VAR_DUMP(reading);
       VAR_DUMPN(avgi);
-  #else
-      Serial.println(" g");
-  #endif
+      #endif
+      digitalWrite(13,0);
     }
     else
     {
-      Serial.println("sensor error");
+      #if DEBUG == 1
+      Serial.print("sensor error: ");
+      Serial.println(reading);
+      #endif
+      digitalWrite(13, 1);
     }
   }
     //float avg = data_sum/(DEC_SHIFT);
